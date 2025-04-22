@@ -12,24 +12,45 @@ import Dokumen from '../js/View/DokumenView.vue';
 import Keuangan from '../js/View/KeuanganView.vue';
 import Dosen from '../js/View/DosenView.vue';
 
+// Router setup
 const routes = [
-  { path: '/', component: Login },
-  { path: '/Mahasiswahome', component: MahasiswaHome }, 
-  { path: '/Adminhome', component: AdminHome }, 
-  { path: '/Dosenhome', component: DosenHome }, 
-  { path: '/about', component: About },
-  { path: '/contact', component: Contact },
-  { path: '/profile', component: Profile },
-  { path: '/jadwal', component: Jadwal },
-  { path: '/khskrs', component: KhsKrs },
-  { path: '/dokumen', component: Dokumen },
-  { path: '/keuangan', component: Keuangan },
-  { path: '/dosen', component: Dosen },
+  { path: '/login', component: Login, name: 'login' },
+  { path: '/Mahasiswahome', component: MahasiswaHome, name: 'mahasiswaHome' },
+  { path: '/Adminhome', component: AdminHome, name: 'adminHome' },
+  { path: '/Dosenhome', component: DosenHome, name: 'dosenHome' },
+  { path: '/about', component: About, name: 'about' },
+  { path: '/contact', component: Contact, name: 'contact' },
+  { path: '/profile', component: Profile, name: 'profile' },
+  { path: '/jadwal', component: Jadwal, name: 'jadwal' },
+  { path: '/khskrs', component: KhsKrs, name: 'khskrs' },
+  { path: '/dokumen', component: Dokumen, name: 'dokumen' },
+  { path: '/keuangan', component: Keuangan, name: 'keuangan' },
+  { path: '/dosen', component: Dosen, name: 'dosen' },
 ];
 
+// Create router
 const router = createRouter({
   history: createWebHashHistory(),
-  routes
+  routes,
+});
+
+// Route guard to protect routes
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+
+  // Check if the user is trying to access a protected route without being logged in
+  if ((to.name === 'adminHome' && role !== 'admin') || 
+      (to.name === 'dosenHome' && role !== 'dosen') || 
+      (to.name === 'mahasiswaHome' && role !== 'mahasiswa')) {
+    if (!token) {
+      next({ name: 'login' });
+    } else {
+      next();
+    }
+  } else {
+    next(); // Allow the user to navigate to the route
+  }
 });
 
 export default router;

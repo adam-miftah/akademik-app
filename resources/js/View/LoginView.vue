@@ -40,50 +40,57 @@ export default {
     };
   },
   methods: {
-    login() {
-      fetch('http://localhost:8000/api/login',{
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: this.email,
-          password: this.password,
-        }),
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
+    async login() {
+      try {
+        const response = await fetch('http://akademik-app.test//api/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+          },
+          body: JSON.stringify({
+            email: this.email,
+            password: this.password
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.token) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('role', data.user.role);
+
           Swal.fire({
-            title: 'Login Sukses!',
+            title: 'Login Berhasil!',
+            text: `Halo ${data.user.name} 👋`,
             icon: 'success',
-            timer: 1500,
-            showConfirmButton: false
+            showConfirmButton: false,
+            timer: 1500
           });
 
           setTimeout(() => {
-            if (data.role === 'admin') {
+            const role = data.user.role;
+            if (role === 'admin') {
               this.$router.push('/AdminHome');
-            } else if (data.role === 'dosen') {
+            } else if (role === 'dosen') {
               this.$router.push('/DosenHome');
-            } else if (data.role === 'mahasiswa') {
+            } else if (role === 'mahasiswa') {
               this.$router.push('/HomeView');
             }
           }, 1600);
         } else {
           Swal.fire({
             title: 'Login Gagal!',
-            text: data.message,
+            text: data.message || 'Email atau password salah.',
             icon: 'error',
             timer: 2000,
             showConfirmButton: false
           });
         }
-      })
-      .catch(err => {
-        console.error(err);
-        Swal.fire('Terjadi Kesalahan!', '', 'error');
-      });
+      } catch (error) {
+        console.error(error);
+        Swal.fire('Terjadi kesalahan saat login.', '', 'error');
+      }
     }
   }
 };
